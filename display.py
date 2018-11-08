@@ -2,17 +2,19 @@ from math import trunc
 from random import randint, choice
 from nodes import Node, genNodes
 
-def dispNodes(lst, melody):
+def dispNodes(lst, melody, branches = False):
     table = ""
     for level, pitch in zip(lst, melody):
         table += pitch + ": "
-        for node in level[0:len(level)-2]:
+        for node in level:
             table += str(node.fret) + "(" + node.string + ") "
+            if branches == True:
+                table += str(node.branches) + " "
         table += "\n"
     return table
 
 
-def dispTab(lst,instrument): # displays ASCII tablature
+def dispTab(lst,instrument): # displays ASCII tablature # outdated
     lines = []
     for i in instrument:
         lines.append(i[0]+"|")
