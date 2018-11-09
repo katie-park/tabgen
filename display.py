@@ -7,25 +7,25 @@ def dispNodes(lst, melody, branches = False):
     for level, pitch in zip(lst, melody):
         table += pitch + ": "
         for node in level:
-            table += str(node.fret) + "(" + node.string + ") "
+            table += str(node.fret) + '(' + node.string + ") "
             if branches == True:
-                table += str(node.branches) + " "
+                table += str(node.branches) + "\n" + (len(pitch)+2)*' '
         table += "\n"
     return table
 
 
-def dispTab(lst,instrument): # displays ASCII tablature # outdated
+def dispTab(tab,instrument): # displays ASCII tablature # outdated
     lines = []
-    for i in instrument:
+    for i in instrument.tunings:
         lines.append(i[0]+"|")
     i = 0
-    for i in lst:
+    for node in tab:
         j = 0
-        for j in lines:
-            dashnum = len(str(i[0])) + 1
-            if j == i[1]:
+        for x in lines:
+            dashnum = len(str(node.fret)) + 1
+            if j == instrument.tunings.index(node.string):
                 #to do: fill it bitch
-                lines[j] += str(i[0])
+                lines[j] += str(node.fret)
                 lines[j] += "-"
             else:
                 lines[j] += "-" * dashnum
@@ -33,3 +33,5 @@ def dispTab(lst,instrument): # displays ASCII tablature # outdated
         i += 1
     lines.reverse()
     return lines
+
+    

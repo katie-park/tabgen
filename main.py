@@ -29,5 +29,8 @@ if method == 2:
 	for i in range(randint(2,10)):
 		melody.append(notation.NOTES[randint(min_pitch,max_pitch)])
 
-print(display.dispNodes(nodes.genNodes(melody,chosen_instrument), melody))
+print(display.dispNodes(nodes.genNodes(melody,chosen_instrument), melody, True))
+
+for i in (display.dispTab(nodes.rand_path(nodes.genNodes(melody,chosen_instrument)),chosen_instrument)):
+	print(i)
 	
