@@ -1,89 +1,124 @@
-from notation import NOTES
-from random import choice
+from display import *
+from notation import *
+from randnote import *
+import sys
 
 class Node:
     def __init__(self,fret,string,branches):
         self.fret = fret
         self.string = string
-        self.branches = branches
 
-def idx2id(lst,i,j): # return specific ID from an index of a 2D array
-    id2D = sum(len(x) for x in lst[0:i])
-    id2D += len(lst[i][0:j])
-    return id2D
-
-def id2idx(lst,id2D): # return index of a 2D array from a specific ID # crap
-    n = 0
-    i = 0
-    j = 0
-    #uhhhh
-    return i, j
-
-'''
-test = [[0,1,2],[3],[4,5]]
-i = 0
-n = 0
-for x in test:
-    j = 0
-    for y in x:
-        print(idx2id(test,i,j),id2idx(test,n))
-        j += 1
-        n += 1
-    i += 1
-'''
-
-def genNodes(melody,instrument): # generate possible tab
+def gen_nodes(melody,instrument): # generate possible tab
     node_lst = []
     for pitch in melody:
         fret_choices = []
         for string in instrument.tunings:
-            if NOTES.index(pitch) >= NOTES.index(string):
-                fret_choices.append(Node(NOTES.index(pitch)-NOTES.index(string), string, []))
+            fret = NOTES.index(pitch) - NOTES.index(string)
+            if fret >= 0 and fret <= instrument.fretnum: # check if pitch is in range of instrument's string
+                fret_choices.append(Node(fret, string, []))
         node_lst.append(fret_choices)
-
-    # generate branches
-    i = 0
-    for level in node_lst[0:len(node_lst)-1]:
-        for node in level:
-            j = 0
-            for branch in node_lst[i+1]:
-                if node.fret == 0 and branch.fret == 0:
-                    node.branches.append("BN")
-                elif node.fret == 0:
-                    node.branches.append("B"+str(branch.fret))
-                elif branch.fret == 0:
-                    node.branches.append("N"+str(node.fret))
-                else:
-                    node.branches.append(abs(node.fret-branch.fret))
-                j += 1
-        i += 1
-
     return node_lst
 
-def link(level):
-    for level in lst:
-        for node in lst:
-            pass
-    return 0
+def stat_range(lst):
+    return max(lst) - min(lst)
 
-def rand_path(node_lst):
-    tab = []
-    for level in node_lst:
-        tab.append(choice(level))
-    return tab
+def path_length(tab, limit=None): # incorporate limits
+    path_length = 0
+    
+    zero_start = False
+    if tab[0].fret == 0:
+        zero_start = True
+    i = 1
+    for node in tab[1:len(tab)]:
+        if zero_start:
+            if node.fret != 0:
+                first_fret = node.fret
+                zero_start = False
+            i += 1
+            continue
 
+        if node.fret != 0:
+            if tab[i-1].fret != 0:
+                first_fret = tab[i-1].fret
+                second_fret = node.fret
+            else:
+                second_fret = node.fret
 
-def find_shortest_path(node_lst,instrument): # crap
-    limit = instrument.fretnum
-    i = 0
-    for level in node_lst[0:len(node_lst)-1]:
-        j = 0
-        for node in level:
-            k = 0
-            for difference in node.branches:
-                for branch in node_lst[i+1][k]:
-                    branch.branches 
-                k += 1
-            j += 1
+            if type(limit) == int:
+                if abs(first_fret - second_fret) > limit:
+                    return None
+            path_length += abs(first_fret - second_fret)
+
+        else:
+            if tab[i-1].fret != 0:
+                first_fret = tab[i-1].fret
         i += 1
-    return 0
+    return path_length
+
+def tree_iterate(lst, limit=None):
+    max_indices = [len(i)-1 for i in lst]
+    
+    ids = [0]*len(lst)
+
+    done = False
+    
+    iterations = []
+    j = 0
+
+    shortest_iteration = None
+
+    while not done:
+        
+        current_iteration = []
+
+        for i in range(len(lst)):
+            current_iteration.append(lst[i][ids[i]])
+        
+        if path_length(current_iteration,limit) != None:
+             shortest_iteration = current_iteration
+
+        # If limit
+        elif type(limit) == int:
+            if path_length(current_iteration,limit) != None:
+                if path_length(current_iteration,limit) < path_length(shortest_iteration,limit):
+                    shortest_iteration = current_iteration
+                elif path_length(current_iteration,limit) == path_length(shortest_iteration,limit):
+                    if stat_range([i.fret for i in current_iteration]) < stat_range([i.fret for i in current_iteration]):
+                        shortest_iteration = current_iteration
+                    if stat_range([i.fret for i in current_iteration]) == stat_range([i.fret for i in current_iteration]):
+                        if sum([i.fret for i in current_iteration]) <= sum([i.fret for i in current_iteration]):
+                            shortest_iteration = current_iteration
+
+        # If no limit
+        else:
+            if path_length(current_iteration) < path_length(shortest_iteration):
+                shortest_iteration = current_iteration
+            elif path_length(current_iteration) == path_length(shortest_iteration):
+                if stat_range([i.fret for i in current_iteration]) < stat_range([i.fret for i in current_iteration]):
+                    shortest_iteration = current_iteration
+                if stat_range([i.fret for i in current_iteration]) == stat_range([i.fret for i in current_iteration]):
+                    if sum([i.fret for i in current_iteration]) <= sum([i.fret for i in current_iteration]):
+                        shortest_iteration = current_iteration
+
+        # Increment indices
+        ids[len(ids)-1] += 1
+
+        carry = False
+        for i in range(len(ids)-1,-1,-1):
+            if carry:
+                ids[i] += 1
+                carry = 0
+
+            if i == 0 and ids[i] > max_indices[i]:
+                done = True
+
+            if ids[i] > max_indices[i]:
+                carry = True
+                ids[i] = 0
+
+        iterations.append(path_length(current_iteration))
+
+        j += 1
+
+    return shortest_iteration
+

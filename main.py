@@ -1,36 +1,62 @@
+from display import *
+from nodes import *
+from notation import *
+from randnote import *
+
+import sys
 from random import randint, choice
-import display
-import nodes
-import notation
 
-print("TAB GENERATOR")
-print("Manual input (1)")
-print("Random input (2)\n")
+print()
+print(r"  _        _                                 _           ")
+print(r" | |_ __ _| |__   __ _ ___ _ _  ___ _ _ __ _| |_ ___ _ _ ")
+print(r" |  _/ _` | '_ \ / _` / -_| ' \/ -_| '_/ _` |  _/ _ | '_|")
+print(r"  \__\__,_|_.__/ \__, \___|_||_\___|_| \__,_|\__\___|_|  ")
+print(r"                 |___/                                   ")
+print()
 
+# randomized mode
+if "-r" in sys.argv:
+	chosen_instrument = ukulele
+	melody = melody_gen(randint(2,20),chosen_instrument)
+
+elif "-e" in sys.argv:
+	chosen_instrument = ukulele
+	melody = ["C5","B4","A4","G4","F4","G4","A4","C5","B4","A4","G4","F4","E4"]
+
+# manual mode
+else:
+	print("INSTRUMENTS: ")
+	i = 1
+	for instrument in INSTRUMENTS:
+		print(f"{i}. {instrument.name}")
+		i += 1
+	try:
+		chosen_instrument = INSTRUMENTS[int(input(f"Select Instrument (1-{len(INSTRUMENTS)}): "))-1]
+	except ValueError:
+		print("error: instrument selection is not a number")
+		sys.exit()
+	except IndexError:
+		print("error: instrument selection is out of range")
+		sys.exit()
+	melody = input("Input in scientific pitch (e.g. E3 G#3 Db3 ... ): ").split()
+	melody = [enharmonic(i) for i in melody]
+
+node_lst = gen_nodes(melody,chosen_instrument)
 try:
-	method = int(input("Method: (1-2): "))
-	print()
-except ValueError:
-	print("Stoopid")
+	tab = tree_iterate(node_lst, 5)
+	if tab == None:
+		print("error: limit too high")
+		sys.exit()
+except IndexError:
+	print("error: melody out of range")
+	sys.exit()
 
-if method == 1:
-	melody = input("Input in scientific pitch notation (e.g. E3 A3 G3 ... ): ").split()
+if "-t" in sys.argv:
+	print("MELODY: " + " ".join(melody))
 
-	chosen_instrument = notation.guitar
 
-if method == 2:
+print(chosen_instrument.name.upper())
+print(dispTab(tab,chosen_instrument))
 
-	chosen_instrument = choice(notation.INSTRUMENTS)
-
-	min_pitch = notation.NOTES.index(chosen_instrument.tunings[0])
-	max_pitch = notation.NOTES.index(chosen_instrument.tunings[len(chosen_instrument.tunings)-1])+chosen_instrument.fretnum
-
-	melody = []
-	for i in range(randint(2,10)):
-		melody.append(notation.NOTES[randint(min_pitch,max_pitch)])
-
-print(display.dispNodes(nodes.genNodes(melody,chosen_instrument), melody, True))
-
-for i in (display.dispTab(nodes.rand_path(nodes.genNodes(melody,chosen_instrument)),chosen_instrument)):
-	print(i)
+print("path length: " + str(path_length(tab)))
 	

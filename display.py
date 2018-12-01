@@ -1,20 +1,19 @@
 from math import trunc
 from random import randint, choice
-from nodes import Node, genNodes
+import sys
 
-def dispNodes(lst, melody, branches = False):
-    table = ""
+def dispNodes(lst,melody):
+    node_display = ""
     for level, pitch in zip(lst, melody):
-        table += pitch + ": "
-        for node in level:
-            table += str(node.fret) + '(' + node.string + ") "
-            if branches == True:
-                table += str(node.branches) + "\n" + (len(pitch)+2)*' '
-        table += "\n"
-    return table
+        node_display += pitch + ": "
+        for node in level[0:len(level)-1]:
+            node_display += str(node.fret) + '(' + node.string + ")"
+            node_display += ", "
+        node_display += str(level[len(level)-1].fret) + '(' + level[len(level)-1].string + ")"
+        node_display += "\n"
+    return node_display
 
-
-def dispTab(tab,instrument): # displays ASCII tablature # outdated
+def dispTab(tab,instrument): # displays ASCII tablature
     lines = []
     for i in instrument.tunings:
         lines.append(i[0]+"|")
@@ -32,6 +31,6 @@ def dispTab(tab,instrument): # displays ASCII tablature # outdated
             j += 1
         i += 1
     lines.reverse()
-    return lines
 
+    return "\n".join(lines)
     
