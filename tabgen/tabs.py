@@ -17,7 +17,7 @@ class Pitch:
     def fromName(cls, name: str):
         octave = int(re.search(r"\d+$", name).group()) # https://stackoverflow.com/questions/7085512/check-what-number-a-string-ends-with-in-python
         pitch_class = scale.index(name[0]) # https://en.wikipedia.org/wiki/Pitch_class
-        number = pitch_class + (12 * octave) + name.count('#') - name.count('b') # '#' represents sharps, 'b' represents flats
+        number = pitch_class + (scale_len * octave) + name.count('#') - name.count('b') # '#' represents sharps, 'b' represents flats
         return cls(number)
 
     def __str__(self):
@@ -36,33 +36,39 @@ class Length:
 
 
 # Abstraction of instruments
-class String: # The string of an instrument (not an array of characters! maybe this name is confusing but i can't think of an alternative yet)
-    def __init__(self, tuning, num_of_frets):
+class String: # The string of an instrument (not an array of characters! this name might be confusing but i can't think of an alternative yet)
+    def __init__(self, tuning: Pitch, num_of_frets: int):
         self.tuning = tuning
         self.num_of_frets = num_of_frets
     
     def fret(self, num): # returns the pitch at a specified pitch number
         if not (0 <= num and num <= num_of_frets):
             raise ValueError("num must be a noneegative integer less than or equal to the num_of_frets of the String")
+        return Pitch(int(self.tuning) + num)
         
-
 class Instrument: # In the scope of this program, only stringed instruments are used.
-    def __init__(self, tunings: [Pitch]):
-        self.tunings = tunings
+    def __init__(self, strings: [String]):
+        self.strings = strings
 
 
-# Abstraction of songs
+# Abstraction of tablature
 class Note:
     def __init__(self, pitch: Pitch, length: Length, start_time):
         self.pitch = pitch
         self.length = length
         self.start_time = start_time # when the note starts, based on int(length). see Song for more context. (maybe type restrict to Fraction?)
+    
+    def interval(self, ending_note: Note):
+        return int(ending_note.pitch) - int(self.pitch)
 
 class Song:
     def __init__(self, time_signature: Length, notes: [Note]): # uhhhh
         self.time_signature = time_signature
         self.notes = notes # notes in the song. start_time dictates when in the song a note occures
         self.num_of_measures = ceil(max(notes, key=lambda x: x.start_time) / time_signature.length) # number of measures in the song
+
+class TabTree:
+    def __init__(self, song: Song, instrument: Instrument):
+        self.song = song
+        self.instrument = instrument
     
-    def uhhh(self, instrument: Instrument):
-        pass
