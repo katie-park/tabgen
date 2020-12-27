@@ -1,3 +1,5 @@
 # __main__.py
+import tabs
 
-print("hello world")
+for i in range(5):
+    print(tabs.String( tabs.Pitch(0), 26 ))
